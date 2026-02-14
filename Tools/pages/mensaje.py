@@ -6,16 +6,19 @@ class MensajeState(rx.State):
     error: str = ""
     mensaje_url: str = ""
 
-
-
     def enviar(self):
-        if self.numero != "":
-            self.mensaje_url = f"https://wa.me/57{self.numero}"
-            self.error = ""
-            return rx.call_script(f"window.open('{self.mensaje_url}', '_blank')")
-        else:
+        numero_limpio = "".join(char for char in self.numero if char.isdigit())
+        if len(numero_limpio) != 10:
             self.error = "Ingrese un número válido"
             self.mensaje_url = ""
+            return
+
+        self.numero = numero_limpio
+        self.mensaje_url = f"https://wa.me/57{numero_limpio}"
+        self.error = ""
+        return rx.call_script(
+            f"window.open('{self.mensaje_url}', '_blank', 'noopener,noreferrer')"
+        )
 
 
 
@@ -52,6 +55,7 @@ def mensaje() -> rx.Component:
                                 placeholder="Ej: 3001234567",
                                 on_change=MensajeState.set_numero,
                                 value=MensajeState.numero,
+                                max_length=10,
                                 size="3",
                                 width="100%",
                             ),

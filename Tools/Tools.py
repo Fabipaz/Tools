@@ -11,6 +11,7 @@ from Tools.pages.mensaje import mensaje
 from Tools.pages.ohm import ohm
 from Tools.pages.ups import ups
 from Tools.pages.gramatica import gramatica
+from Tools.pages.conductores import conductores
 from Tools.pages.blog import blog
 
 def index() -> rx.Component:
@@ -19,7 +20,7 @@ def index() -> rx.Component:
         rx.el.main(
             rx.el.div(
                 rx.el.h1(
-                    "Utidades web para ingenieros",
+                    "Utilidades web para ingenieros",
                     class_name="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent-color-light)] to-[var(--secondary-accent)]",
                 ),
                 rx.el.p(
@@ -78,6 +79,12 @@ def index() -> rx.Component:
                         description="Valida ortografía.",
                         href="/gramatica",
                     ),
+                    utility_card(
+                        icon="wires",
+                        title="Conductores",
+                        description="Calcula conductores para cables.",
+                        href="/conductores",
+                    ),
                     class_name="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full",
                 ),
                 class_name="container mx-auto px-4 sm:px-6 lg:px-8 py-8",
@@ -111,4 +118,5 @@ app.add_page(mensaje, route="/mensaje")
 app.add_page(ohm, route="/ohm")
 app.add_page(ups, route="/ups")
 app.add_page(gramatica, route="/gramatica")
+app.add_page(conductores, route="/conductores")
 app.add_page(blog, route="/blog")

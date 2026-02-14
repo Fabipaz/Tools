@@ -11,17 +11,16 @@ class UpState(rx.State):
     factor_seguridad: str = "1.1"  # Margen 10% extra
     voltaje_bateria: str = "12"    # Voltaje por batería individual
     capacidad_bateria: str = ""
+    resultado: str = ""
+    num_baterias: str = ""
+    baterias_serie: str = ""
+    baterias_paralelo: str = ""
 
     def calcular_banco_baterias(self):
         try:
-            # Datos
-            autonomia = float(self.autonomia)       # horas
-            voltaje = float(self.voltaje)           # Vdc del banco
-            eficiencia = float(self.eficiencia)     # eficiencia inversor
-            dod = float(self.dod)                   # profundidad descarga
-            k = float(self.factor_seguridad)        # factor de seguridad
-            vbat = float(self.voltaje_bateria)      # V por batería
+            # Convertir valores de entrada
             carga = float(self.carga) if self.carga else 0
+            capacidad_ups = float(self.capacidad_ups) if self.capacidad_ups else 0
             autonomia = float(self.autonomia) if self.autonomia else 0
             voltaje = float(self.voltaje) if self.voltaje else 0
             eficiencia = float(self.eficiencia) if self.eficiencia else 0.9
@@ -32,32 +31,54 @@ class UpState(rx.State):
             self.resultado = "Por favor, ingrese valores numéricos válidos"
             return
 
-        if carga == 0 or autonomia == 0 or voltaje == 0:
+        if carga <= 0 or autonomia <= 0 or voltaje <= 0:
             self.resultado = "Por favor, complete todos los campos requeridos"
+            return
+        if eficiencia <= 0 or eficiencia > 1:
+            self.resultado = "La eficiencia debe estar entre 0 y 1"
+            return
+        if dod <= 0 or dod > 1:
+            self.resultado = "La profundidad de descarga debe estar entre 0 y 1"
+            return
+        if factor_seguridad < 1:
+            self.resultado = "El factor de seguridad debe ser mayor o igual a 1"
+            return
+        if voltaje_bateria <= 0:
+            self.resultado = "El voltaje de batería debe ser mayor que 0"
             return
 
         # Cálculo de capacidad de batería
         capacidad_ah = (carga * autonomia) / (voltaje * eficiencia * dod) * factor_seguridad
+        validacion_ups = ""
+        if capacidad_ups > 0:
+            carga_en_kva = carga / 1000
+            uso_ups = (carga_en_kva / capacidad_ups) * 100
+            if uso_ups > 100:
+                validacion_ups = (
+                    f"\nADVERTENCIA UPS: La carga estimada usa {uso_ups:.1f}% "
+                    f"de la capacidad nominal ({capacidad_ups:.2f} kVA)."
+                )
+            else:
+                validacion_ups = (
+                    f"\nUso de UPS: {uso_ups:.1f}% de {capacidad_ups:.2f} kVA."
+                )
         
         # Cálculo de configuración de baterías
-        if voltaje_bateria > 0:
-            baterias_serie = math.ceil(voltaje / voltaje_bateria)
-            baterias_paralelo = 1  # Simplificado
-            num_baterias_total = baterias_serie * baterias_paralelo
-            
-            self.capacidad_bateria = f"{capacidad_ah:.2f}"
-            self.num_baterias = str(num_baterias_total)
-            self.baterias_serie = str(baterias_serie)
-            self.baterias_paralelo = str(baterias_paralelo)
-            
-            self.resultado = (
-                f"Capacidad requerida: {capacidad_ah:.2f} Ah\n"
-                f"Configuración: {baterias_serie} baterías en serie × {baterias_paralelo} en paralelo\n"
-                f"Total de baterías: {num_baterias_total}"
-            )
-        else:
-            self.capacidad_bateria = f"{capacidad_ah:.2f}"
-            self.resultado = f"Capacidad requerida: {capacidad_ah:.2f} Ah"
+        baterias_serie = math.ceil(voltaje / voltaje_bateria)
+        baterias_paralelo = 1  # Simplificado: no se define Ah por batería comercial
+        num_baterias_total = baterias_serie * baterias_paralelo
+
+        self.capacidad_bateria = f"{capacidad_ah:.2f}"
+        self.num_baterias = str(num_baterias_total)
+        self.baterias_serie = str(baterias_serie)
+        self.baterias_paralelo = str(baterias_paralelo)
+
+        self.resultado = (
+            f"Capacidad requerida: {capacidad_ah:.2f} Ah\n"
+            f"Configuración: {baterias_serie} baterías en serie × {baterias_paralelo} en paralelo\n"
+            f"Total de baterías: {num_baterias_total}"
+            f"{validacion_ups}"
+        )
 
 from Tools.components.navbar import navbar
 from Tools.components.footer import footer
@@ -181,11 +202,11 @@ def ups() -> rx.Component:
                         class_name="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent-color)] to-[var(--secondary-accent)] text-white font-bold text-lg hover:opacity-90 transition-opacity duration-200 mb-6 cursor-pointer",
                     ),
                     rx.cond(
-                        UpState.capacidad_bateria != "",
+                        UpState.resultado != "",
                         rx.el.div(
                             rx.el.p("Resultado", class_name="text-sm text-gray-400"),
                             rx.el.pre(
-                                UpState.capacidad_bateria,
+                                UpState.resultado,
                                 class_name="text-xl font-mono text-white whitespace-pre-wrap",
                             ),
                             class_name="bg-[#1A1F3A]/50 p-6 rounded-xl border border-gray-700/50",

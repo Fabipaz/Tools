@@ -10,23 +10,41 @@ class ConversorStategf(rx.State):
     tmr_cop: str ="Cargando . . ."
 
     def convertir_monedas(self):
+        if not self.monto or not self.moneda_base or not self.moneda_destino:
+            self.monto_convertido = "Por favor, complete todos los campos."
+            self.tasa_cambio = ""
+            return
         try:
             monto_float = float(self.monto)
         except ValueError:
-            self.monto_convertido = 'Por favor, ingrese un monto válido.'
+            self.monto_convertido = "Por favor, ingrese un monto válido."
+            self.tasa_cambio = ""
             return
 
-        if self.monto and self.moneda_base and self.moneda_destino:
-            tasa_cambio = obtener_tasa_cambio(self.moneda_base, self.moneda_destino)
-            if isinstance(tasa_cambio, float):
-                monto_convertido = monto_float * tasa_cambio
-                self.monto_convertido = f'El valor de conversión es: {tasa_cambio}, la suma de {self.monto} {self.moneda_base} equivale a {monto_convertido:.2f} {self.moneda_destino}'
-                self.tasa_cambio = f'Tasa de cambio: {tasa_cambio:.4f}'
-            else:
-                self.monto_convertido = 'No se pudo realizar la conversión.'
-                self.tasa_cambio = 'Error al obtener la tasa de cambio'
+        if monto_float <= 0:
+            self.monto_convertido = "El monto debe ser mayor que 0."
+            self.tasa_cambio = ""
+            return
+
+        if self.moneda_base == self.moneda_destino:
+            self.monto_convertido = (
+                f"{monto_float:.2f} {self.moneda_base} equivale a "
+                f"{monto_float:.2f} {self.moneda_destino}"
+            )
+            self.tasa_cambio = "Tasa de cambio: 1.0000"
+            return
+
+        tasa_cambio = obtener_tasa_cambio(self.moneda_base, self.moneda_destino)
+        if isinstance(tasa_cambio, float):
+            monto_convertido = monto_float * tasa_cambio
+            self.monto_convertido = (
+                f"{monto_float:.2f} {self.moneda_base} equivale a "
+                f"{monto_convertido:.2f} {self.moneda_destino}"
+            )
+            self.tasa_cambio = f"Tasa de cambio: {tasa_cambio:.4f}"
         else:
-            self.monto_convertido = 'Por favor, complete todos los campos.'
+            self.monto_convertido = "No se pudo realizar la conversión."
+            self.tasa_cambio = str(tasa_cambio)
 
     def obtener_tmr_cop(self):
             self.tmr_cop = "0"
