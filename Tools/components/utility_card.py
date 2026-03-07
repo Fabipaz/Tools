@@ -1,7 +1,9 @@
 import reflex as rx
 
 
-def utility_card(icon: str, title: str, description: str, href: str) -> rx.Component:
+def utility_card(
+    icon: str, title: str, description: str, formula: str, href: str
+) -> rx.Component:
     return rx.el.a(
         rx.el.div(
             rx.el.div(
@@ -10,6 +12,17 @@ def utility_card(icon: str, title: str, description: str, href: str) -> rx.Compo
             ),
             rx.el.h3(title, class_name="mt-4 text-xl font-bold text-white"),
             rx.el.p(description, class_name="mt-2 text-sm text-gray-400"),
+            rx.el.div(
+                rx.el.p(
+                    "Formula / Calculo",
+                    class_name="text-[11px] uppercase tracking-wide text-gray-500",
+                ),
+                rx.el.p(
+                    formula,
+                    class_name="mt-1 font-mono text-xs text-cyan-200 break-words",
+                ),
+                class_name="mt-4 p-3 rounded-lg bg-[#0F1533] border border-gray-700/60",
+            ),
             class_name="flex-grow",
         ),
         rx.el.div(

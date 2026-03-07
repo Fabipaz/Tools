@@ -4,3 +4,6 @@ __pycache__/
 .web
 .states
 assets/external/
+.env
+Tools/.env
+.venv
