@@ -1,9 +1,30 @@
+# Python
 __pycache__/
-*.db
 *.py[cod]
-.web
-.states
-assets/external/
+*.pyo
+*.pyd
+*.db
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment files
 .env
+.env.*
+!.env.example
 Tools/.env
-.venv
+
+# Reflex / app generated
+.web/
+.states/
+uploaded_files/
+assets/external/
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/

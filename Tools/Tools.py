@@ -147,6 +147,13 @@ class HomeChatState(rx.State):
     error: str = ""
     loading: bool = False
     model: str = "openai/gpt-4o-mini"
+    is_open: bool = False
+
+    def toggle_widget(self):
+        self.is_open = not self.is_open
+
+    def close_widget(self):
+        self.is_open = False
 
     @staticmethod
     def _get_openrouter_api_key() -> str:
@@ -279,9 +286,10 @@ def index() -> rx.Component:
                     "Utilidades web para ingenieros",
                     class_name="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-[var(--accent-color-light)] to-[var(--secondary-accent)]",
                 ),
+                rx.divider(),
                 rx.el.p(
-                    "Tu futuro conjunto de herramientas esenciales para ingenieros.",
-                    class_name="mt-4 text-lg text-gray-300 text-center max-w-2xl",
+                    "Conjunto de herramientas esenciales para ingenieros.",
+                    class_name="mt-8 text-lg text-gray-300 text-center max-w-2xl",
                 ),
                 class_name="container mx-auto flex flex-col items-center justify-center pt-24 pb-12 px-4",
             ),
@@ -301,57 +309,85 @@ def index() -> rx.Component:
                 ),
                 class_name="container mx-auto px-4 sm:px-6 lg:px-8 py-8",
             ),
-            rx.el.div(
-                rx.el.div(
-                    rx.el.h2(
-                        "AfrodIA",
-                        class_name="text-2xl md:text-3xl font-bold text-white",
-                    ),
-                    rx.el.p(
-                        "Consulta dudas técnicas sobre las utilidades de la plataforma.",
-                        class_name="mt-2 text-gray-300",
-                    ),
-                    rx.text_area(
-                        placeholder="Ej: Como dimensiono un banco de baterias para 2kW por 3 horas?",
-                        on_change=HomeChatState.set_prompt,
-                        value=HomeChatState.prompt,
-                        size="3",
-                        width="100%",
-                        rows="4",
-                        class_name="mt-4",
-                    ),
-                    rx.el.button(
-                        "Preguntar al asistente",
-                        on_click=HomeChatState.consultar_openrouter,
-                        class_name="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent-color)] to-[var(--secondary-accent)] text-white font-bold text-lg hover:opacity-90 transition-opacity duration-200 cursor-pointer",
-                    ),
-                    rx.cond(
-                        HomeChatState.loading,
-                        rx.el.p("Consultando OpenRouter...", class_name="text-gray-300 mt-3"),
-                        None,
-                    ),
-                    rx.cond(
-                        HomeChatState.error != "",
-                        rx.el.p(HomeChatState.error, class_name="text-red-400 text-sm mt-3"),
-                        None,
-                    ),
-                    rx.cond(
-                        HomeChatState.response != "",
-                        rx.el.div(
-                            rx.el.p("Respuesta", class_name="text-sm text-gray-400"),
-                            rx.el.pre(
-                                HomeChatState.response,
-                                class_name="text-base text-white whitespace-pre-wrap",
-                            ),
-                            class_name="mt-3 bg-[#1A1F3A]/50 p-4 rounded-xl border border-gray-700/50",
-                        ),
-                        None,
-                    ),
-                    class_name="w-full max-w-3xl bg-[#1A1F3A]/30 p-6 rounded-xl border border-gray-700/30",
-                ),
-                class_name="container mx-auto px-4 sm:px-6 lg:px-8 pb-12",
-            ),
             class_name="flex-grow",
+        ),
+        rx.el.div(
+            rx.cond(
+                HomeChatState.is_open,
+                rx.el.div(
+                    rx.el.div(
+                        rx.el.div(
+                            rx.el.div(
+                                rx.el.p(
+                                    "AfrodIA",
+                                    class_name="text-lg font-bold text-white",
+                                ),
+                                rx.el.p(
+                                    "Ayuda rápida sobre las utilidades de la plataforma.",
+                                    class_name="text-sm text-gray-300",
+                                ),
+                            ),
+                            rx.el.button(
+                                rx.icon("x", size=18),
+                                on_click=HomeChatState.close_widget,
+                                class_name="rounded-full p-2 text-gray-300 hover:bg-white/10 hover:text-white transition-colors duration-200 cursor-pointer",
+                            ),
+                            class_name="flex items-start justify-between gap-3",
+                        ),
+                        rx.text_area(
+                            placeholder="Ej: Como dimensiono un banco de baterias para 2kW por 3 horas?",
+                            on_change=HomeChatState.set_prompt,
+                            value=HomeChatState.prompt,
+                            size="3",
+                            width="100%",
+                            rows="4",
+                            class_name="mt-4",
+                        ),
+                        rx.el.button(
+                            "Preguntar al asistente",
+                            on_click=HomeChatState.consultar_openrouter,
+                            class_name="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent-color)] to-[var(--secondary-accent)] text-white font-bold hover:opacity-90 transition-opacity duration-200 cursor-pointer",
+                        ),
+                        rx.cond(
+                            HomeChatState.loading,
+                            rx.el.p(
+                                "Consultando OpenRouter...",
+                                class_name="text-gray-300 mt-3",
+                            ),
+                            None,
+                        ),
+                        rx.cond(
+                            HomeChatState.error != "",
+                            rx.el.p(
+                                HomeChatState.error,
+                                class_name="text-red-400 text-sm mt-3",
+                            ),
+                            None,
+                        ),
+                        rx.cond(
+                            HomeChatState.response != "",
+                            rx.el.div(
+                                rx.el.p("Respuesta", class_name="text-sm text-gray-400"),
+                                rx.el.pre(
+                                    HomeChatState.response,
+                                    class_name="text-sm text-white whitespace-pre-wrap",
+                                ),
+                                class_name="mt-3 max-h-64 overflow-y-auto bg-[#0F1533]/80 p-4 rounded-xl border border-gray-700/50",
+                            ),
+                            None,
+                        ),
+                        class_name="w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-gray-700/60 bg-[#11182F]/95 p-5 shadow-2xl backdrop-blur-xl",
+                    ),
+                    class_name="fixed bottom-28 right-4 z-[60] sm:bottom-32 sm:right-6",
+                ),
+                None,
+            ),
+            rx.el.button(
+                rx.icon("circle-help", size=22),
+                rx.el.span("AfrodIA", class_name="font-semibold"),
+                on_click=HomeChatState.toggle_widget,
+                class_name="fixed bottom-16 right-4 z-[60] inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--accent-color)] to-[var(--secondary-accent)] px-5 py-3 text-white shadow-xl hover:opacity-90 transition-opacity duration-200 cursor-pointer sm:bottom-20 sm:right-6",
+            ),
         ),
         footer(),
         class_name="flex flex-col min-h-screen",
